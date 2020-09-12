@@ -69,17 +69,6 @@ num inline random(num l, num r) {
 	return (num) rdm() * rand() % (r - l + 1) + l;
 }
 
-const int nsz = 1e5;
-int ts = 5, n = 10, a[nsz + 5];
-
 int main() {
-	init();
-	cout << ts << ln;
-	cont (cs, ts) {
-		cout << n << ln;
-		cont (i, n) {
-			cout << random(0, 1);
-		}
-		cout << ln;
-	}
+	
 }
