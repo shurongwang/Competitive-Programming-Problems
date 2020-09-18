@@ -1,7 +1,4 @@
-
 #include <bits/stdc++.h>
-
-using namespace std;
 
 #define ln                 '\n'
 #define all(dat)           dat.begin(), dat.end()
