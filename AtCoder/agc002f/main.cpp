@@ -55,33 +55,41 @@ template<int mod> struct modulo {
 const int mod = int(1e9) + 7;
 typedef modulo<mod> rem;
 
-const int nsz = 200, ksz = 1000;
-int n, k, a[nsz + 5];
-rem dp[2][nsz + 5][ksz + 5], ans;
+const int nsz = 2e3, msz = nsz * nsz;
+int n, k, m;
+rem f[2][msz + 5], dp[2][nsz + 5], ans;
+
+void inline factorial_init(int n) {
+	f[0][0] = 1;
+	cont (i, n) f[0][i] = f[0][i - 1] * i;
+	f[1][n] = 1 / f[0][n];
+	for (int i = n; i >= 1; --i) f[1][i - 1] = f[1][i] * i;
+}
+
+rem inline C(int n, int m) { return f[0][n] * f[1][m] * f[1][n - m]; }
 
 void inline solve() {
-	sort(a + 1, a + n + 1);
+	if (k == 1) return (void) (ans = 1);
 	int o = 0, x = 1;
-	dp[o][0][0] = 1;
-	cont (i, n) {
-		int d = a[i] - a[i - 1];
-		circ (j, 0, n) circ (b, 0, k) {
-			int nb = b + j * d;
-			if (nb > k) break;
-			rem val = dp[o][j][b];
-			dp[x][j][nb] += val * (j + 1);
-			dp[x][j + 1][nb] += val;
-			if (j > 0) dp[x][j - 1][nb] += val * j;
+	dp[o][0] = 1;
+	circ (i, 0, n) {
+		circ (j, 0, i) {
+			rem val = dp[o][j];
+			int lft = m - i - (k - 1) * j;
+			dp[x][j] += val;
+			if (j + 1 <= i) dp[o][j + 1] += val * C(lft - 1, k - 2);
 		}
+		if (i == n) ans = dp[o][n];
 		swap(o, x);
 		memset(dp[x], 0, sizeof(dp[x]));
 	}
-	circ (b, 0, k) ans += dp[o][0][b];
+	ans *= f[0][n];
 }
 
 int main() {
 	scanf("%d%d", &n, &k);
-	cont (i, n) scanf("%d", &a[i]);
+	m = n * k;
+	factorial_init(m);
 	solve();
-	printf("%d\n", ans.w);
+	printf("%d", ans.w);
 }
