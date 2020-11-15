@@ -1,25 +1,12 @@
-#include <bits/stdc++.h>
-
-#define ln                 '\n'
-#define all(dat)           dat.begin(), dat.end()
-#define loop(i, to)        for (int i = 0; i < to; ++i)
-#define cont(i, to)        for (int i = 1; i <= to; ++i)
-#define circ(i, fm, to)    for (int i = fm; i <= to; ++i)
-#define foreach(i, dat)    for (__typeof(dat.begin()) i = dat.begin(); i != dat.end(); ++i)
-
-typedef long long          num;
-
-using namespace std;
-
 template<int mod> struct modulo {
 	int w;
 	template<typename type> operator type() const { return static_cast<type>(w); }
 	
 	modulo() {}
-	modulo(int w, bool f = 0) { this->w = w; if (f) fix(); }
+	modulo(int w) { this->w = w; fix(); }
 	void inline fix() { if (w >= mod || w < -mod) w %= mod; if (w < 0) w += mod; }
 	
-	inline modulo  operator -  () { w = -w + mod; return *this; }
+	inline modulo  operator -  () const { return mod - w; }
 	inline modulo& operator += (const modulo &b) { if ((w += b.w) >= mod) w -= mod; return *this; }
 	inline modulo& operator -= (const modulo &b) { if ((w -= b.w) < 0) w += mod; return *this; }
 	inline modulo& operator *= (const modulo &b) { w = (unsigned long long) w * b.w % mod; return *this; }
@@ -42,7 +29,7 @@ template<int mod> struct modulo {
 	friend inline modulo inv(const modulo &w) {
 		int a = w, m = mod, u = 0, v = 1, t;
 		for (; a != 0; t = m / a, m -= t * a, swap(a, m), u -= t * v, swap(u, v));
-		return modulo(u, 1);
+		return u;
 	}
 	
 	friend inline modulo pow(const modulo &w, int p) {
@@ -52,5 +39,5 @@ template<int mod> struct modulo {
 		return r;
 	}
 };
-const int mod = number;
+const int mod = ;
 typedef modulo<mod> rem;
