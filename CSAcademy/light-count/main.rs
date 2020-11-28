@@ -1,80 +1,105 @@
-#include <bits/stdc++.h>
+const BB: u8 = 6;
+const B: u8 = 1 << BB;
+const FULL: u8 = B - 1;
+const N: usize = 50000000;
+const C: usize = (N >> BB) + 1;
 
-#define ln                 '\n'
-#define all(dat)           dat.begin(), dat.end()
-#define loop(i, to)        for (int i = 0; i < to; ++i)
-#define cont(i, to)        for (int i = 1; i <= to; ++i)
-#define circ(i, fm, to)    for (int i = fm; i <= to; ++i)
-#define foreach(i, dat)    for (__typeof(dat.begin()) i = dat.begin(); i != dat.end(); ++i)
+static mut bits: [u64; C] = [0; C];
 
-typedef long long          num;
+struct Generator {
+	a: i32, b: i32, c: i32
+}
 
-using namespace std;
-
-template<int mod> struct modulo {
-	int w;
-	operator int&() { return w; }
-	operator int() const { return w; }
-	
-	modulo() {}
-	modulo(int w, bool f = 0) { this->w = w; if (f) fix(); }
-	void inline fix() { if (w >= mod || w < -mod) w %= mod; if (w < 0) w += mod; }
-	
-	inline modulo  operator -  () { w = -w + mod; return *this; }
-	inline modulo  operator +  (const modulo &b) { modulo r = *this; return r += b; }
-	inline modulo  operator -  (const modulo &b) { modulo r = *this; return r -= b; }
-	inline modulo  operator *  (const modulo &b) { modulo r = *this; return r *= b; }
-	inline modulo  operator /  (const modulo &b) { modulo r = *this; return r /= b; }
-	inline modulo& operator += (const modulo &b) { if ((w += b.w) >= mod) w -= mod; return *this; }
-	inline modulo& operator -= (const modulo &b) { if ((w -= b.w) < 0) w += mod; return *this; }
-	inline modulo& operator *= (const modulo &b) { w = (num) w * b.w % mod; return *this; }
-	inline modulo& operator /= (const modulo &b) { return *this *= inv(b); }
-	
-	friend inline modulo inv(const modulo &w) {
-		int a = w, m = mod, u = 0, v = 1, t;
-		for (; a != 0; t = m / a, m -= t * a, swap(a, m), u -= t * v, swap(u, v));
-		return modulo(u, 1);
+impl Generator {
+	#[inline(always)]
+	fn get(&mut self) -> usize {
+		let t: i32 = self.a ^ (self.a << 11);
+		self.a = self.b;
+		self.b = self.c;
+		self.c ^= (self.c >> 19) ^ t ^ (t >> 8);
+		self.c as usize
 	}
-	
-	friend inline modulo pow(const modulo &w, int p) {
-		if (!w)  return 0;
-		modulo a = w, r = 1;
-		for (; p > 0; a *= a, p >>= 1) if (p & 1) r *= a;
-		return r;
-	}
-};
-const int mod = int(1e9) + 7;
-typedef modulo<mod> rem;
-typedef modulo<101> Z_101;
 
-const int nsz = 200;
-char s[nsz + 5];
-int n, r[5];
-rem dp[nsz + 5][nsz + 5][5][101], ans;
+	#[inline(always)]
+	fn rand(&mut self, size: usize) -> usize { self.get() % size }
+}
 
-int main() {
-	scanf("%d", &n);
-	scanf("%s", s + 1);
-	loop (i, 4) {
-		static int p10 = 1;
-		p10 *= 10, p10 %= 101;
-		r[i] = (p10 + 1) % 101;
-	}
-	cont (i, n) {
-		int c = s[i] - '0';
-		dp[i][i][3][c] = 1;
-		circ (j, i + 1, n) if (s[i] == s[j]) dp[i][j][0][c * 11] = 1;
-	}
-	circ (len, 0, n) for (int l = 1, r = len; r <= n; ++l, ++r) {
-		loop (k, 4) loop (m, 101) {
-			rem &val = dp[l][r][k][m];
-			val -= dp[l + 1][r - 1][k][m];
-			dp[l - 1][r][k][m] += val;
-			dp[l][r + 1][k][m] += val;
-			if (l <= 1 || r >= n || s[l - 1] != s[r + 1] || !val) continue;
-			dp[l - 1][r + 1][(k + 2) % 4][(10 * m + (s[l - 1] - '0') * ::r[(k + 2) % 4]) % 101] += val;
+struct FenwickTree {
+	tr: [i32; C]
+}
+static mut tr: FenwickTree = FenwickTree { tr: [0; C] };
+
+impl FenwickTree {
+	#[inline(always)]
+
+	#[inline(always)]
+	fn upd(&mut self, mut u: usize, w: i32) {
+		u += 1;
+		while u <= C {
+			unsafe { *self.tr.get_unchecked_mut(u) += w; }
+			u += u & (!u + 1);
 		}
 	}
-	loop (k, 4) ans += dp[1][n][k][0];
-	printf("%d\n", ans.w);
+
+	#[inline(always)]
+	fn qry(&mut self, mut u: usize) -> i32 {
+		let mut r: i32 = 0;
+		u += 1;
+		while u > 0 {
+			unsafe { r += *self.tr.get_unchecked_mut(u); }
+			u -= u & (!u + 1);
+		}
+		return r;
+	}
+}
+
+#[inline(always)]
+fn count(a: u64, l: u8) -> i32 { (a << l).count_ones() as i32 }
+
+#[inline(always)]
+fn flip(id: usize) {
+	let i: usize = id >> BB;
+	let j: u8 = (id as u8) & FULL;
+	unsafe {
+		*bits.get_unchecked_mut(i) ^= 1 << j;
+		tr.upd(i, if (*bits.get_unchecked(i) >> j & 1) == 1 { 1 } else { -1 });
+	}
+}
+
+#[inline(always)]
+fn qry(to: usize) -> i32 {
+	let i: usize = to >> BB;
+	let j: u8 = to as u8 & FULL;
+	unsafe { tr.qry(i - 1) + count(*bits.get_unchecked(i), FULL - j) }
+}
+
+#[inline(always)]
+fn query(l: usize, r: usize) -> i32 { qry(r) - if l == 0 { 0 } else { qry(l - 1) } }
+
+fn main() {
+	let mut ans: i64 = 0;
+	let mut gen: Generator = Generator { a: 0, b: 0, c: 0 };
+	
+	let mut buffer = String::new();
+	::std::io::stdin().read_line(&mut buffer).expect("Unable to read line");
+	let mut iter = buffer.trim().split(' ');
+	let n = iter.next().unwrap().parse::<usize>().unwrap();
+	let m = iter.next().unwrap().parse::<usize>().unwrap();
+	gen.a = iter.next().unwrap().parse::<i32>().unwrap();
+	gen.b = iter.next().unwrap().parse::<i32>().unwrap();
+	gen.c = iter.next().unwrap().parse::<i32>().unwrap();
+	
+	for i in 0 .. m {
+		let tp = gen.rand(2);
+		if tp == 0 {
+			let id = gen.rand(n);
+			flip(id);
+		} else {
+			let mut l = gen.rand(n);
+			let mut r = gen.rand(n);
+			if l > r { std::mem::swap(&mut l, &mut r); }
+			ans ^= i as i64 * query(l, r) as i64;
+		}
+	}
+	println!("{}", ans);
 }
