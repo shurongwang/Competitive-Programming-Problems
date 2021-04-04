@@ -1,16 +1,3 @@
-#include <bits/stdc++.h>
-
-#define ln                 '\n'
-#define all(dat)           dat.begin(), dat.end()
-#define loop(i, to)        for (int i = 0; i < to; ++i)
-#define cont(i, to)        for (int i = 1; i <= to; ++i)
-#define circ(i, fm, to)    for (int i = fm; i <= to; ++i)
-#define foreach(i, dat)    for (__typeof(dat.begin()) i = dat.begin(); i != dat.end(); ++i)
-
-typedef long long          num;
-
-using namespace std;
-
 template<class type> struct matrix {
 	int n, m;
 	vector< vector<type> > d;
@@ -65,22 +52,18 @@ template<class type> struct matrix {
 	}
 	
 	friend inline type eliminate(matrix &a) {
-		int n = a.n, m = a.m;
+		int n = a.n, m = a.m, r = -1;
 		type f = 1;
-		loop (i, n) {
-			int r = -1;
-			circ (k, i, n - 1) if (a[k][i]) { r = k; break; }
-			if (r == -1) return 0;
-			if (i != r) swap(a[r], a[i]), f = -f;
-			circ (k, i + 1, n - 1) {
-				type p = a[k][i] / a[i][i];
-				circ (j, i, m - 1) a[k][j] -= p * a[i][j];
+		loop (c, m) {
+			int p = -1;
+			circ (i, r + 1, n - 1) if (a[i][c]) { p = i; break; }
+			if (p == -1) { f = 0; continue; }
+			if (++r != p) swap(a[r], a[p]), f = -f;
+			circ (i, r + 1, n - 1) {
+				type d = a[i][c] / a[r][c];
+				if (d != 0) circ (j, c, m - 1) a[i][j] -= d * a[r][j];
 			}
-		}
-		for (int i = n - 1; i >= 0; --i) circ (k, 0, i - 1) {
-			type p = a[k][i] / a[i][i];
-			a[k][i] = 0;
-			circ (j, n, m - 1) a[k][j] -= p * a[i][j];
+			if (r == n - 1) break;
 		}
 		return f;
 	}
